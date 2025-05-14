@@ -42,7 +42,7 @@ public class coursefollowcntrl {
     }
 
     // Mettre à jour un suivi
-    @PutMapping("/update/{id}")
+    @PutMapping("/updateById/{id}")
     public ResponseEntity<ApiResponse<CourseFollowDTO>> update(@PathVariable Integer id, @RequestBody CourseFollowDTO dto) {
         ApiResponse<CourseFollowDTO> response = followService.updateFollow(id, dto);
         int status = "SUCCESS".equals(response.getStatus()) ? 200 : 404;
