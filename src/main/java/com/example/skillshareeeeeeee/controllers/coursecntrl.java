@@ -21,55 +21,12 @@ import java.util.Optional;
 public class coursecntrl {
 
     private final coursesrvc courseService;
-    private final categorysrvc categoryService;
-    private final userrep userRepository;
 
-    public coursecntrl(coursesrvc courseService, categorysrvc categoryService, userrep userRepository) {
+    public coursecntrl(coursesrvc courseService) {
         this.courseService = courseService;
-        this.categoryService = categoryService;
-        this.userRepository = userRepository;
     }
 
-    // Méthode pour mapper CourseDto vers coursemdl (si nécessaire)
-    private coursemdl mapToCourseModel(CourseDto courseDto) {
-        coursemdl course = new coursemdl();
-        course.setId(courseDto.getId());
-        course.setTitle(courseDto.getTitle());
-        course.setDescription(courseDto.getDescription());
-
-        if (courseDto.getCategoryId() != null) {
-            CategoryDto categoryDto = categoryService.getCategoryById(courseDto.getCategoryId())
-                    .orElseThrow(() -> new RuntimeException("Category not found"));
-
-            Category category = new Category();
-            category.setId(categoryDto.getId());
-            category.setName(categoryDto.getName());
-            category.setUrlImg(categoryDto.getUrlImg());
-
-            course.setCategory(category);
-        }
-
-        return course;
-    }
-
-    // Conversion du DTO vers entité avec gestion de l'utilisateur
-    private coursemdl convertToEntity(CourseDto dto) {
-        coursemdl course = new coursemdl();
-        course.setTitle(dto.getTitle());
-        course.setDescription(dto.getDescription());
-        course.setDownload_counts(dto.getDownloadCounts());
-        course.setView_counts(dto.getViewCounts());
-
-        if (dto.getId() != null) {
-            usermdl user = userRepository.findById(dto.getId())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            course.setOwner(user);
-        }
-
-        return course;
-    }
-
-    // Récupérer tous les cours
+    // 📤 Récupérer tous les cours
     @GetMapping("/getAll")
     public ResponseEntity<ApiResponse<List<CourseDto>>> getAllCourses() {
         try {
@@ -82,78 +39,59 @@ public class coursecntrl {
         }
     }
 
-    // Récupérer un cours par ID
+    // 📥 Récupérer un cours par ID
     @GetMapping("/get/{id}")
     public ResponseEntity<ApiResponse<CourseDto>> getCourseById(@PathVariable Integer id) {
-        try {
-            Optional<CourseDto> courseOptional = courseService.getCourseById(id);
+        Optional<CourseDto> courseOptional = courseService.getCourseById(id);
 
-            if (courseOptional.isPresent()) {
-                ApiResponse<CourseDto> response = new ApiResponse<>("SUCCESS", courseOptional.get());
-                return ResponseEntity.ok(response);
-            } else {
-                ApiResponse<CourseDto> response = new ApiResponse<>("FAILURE", null);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-            }
-        } catch (Exception e) {
+        if (courseOptional.isPresent()) {
+            ApiResponse<CourseDto> response = new ApiResponse<>("SUCCESS", courseOptional.get());
+            return ResponseEntity.ok(response);
+        } else {
             ApiResponse<CourseDto> errorResponse = new ApiResponse<>("FAILURE", null);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
     }
 
-    // Créer un nouveau cours
+    // ➕ Créer un cours
     @PostMapping("/create")
-    public ResponseEntity<ApiResponse<coursemdl>> createCourse(@RequestBody CourseDto dto) {
+    public ResponseEntity<ApiResponse<CourseDto>> createCourse(@RequestBody CourseDto dto) {
         try {
-            coursemdl course = convertToEntity(dto);
-            coursemdl saved = courseService.createCourse(course);
-
-            ApiResponse<coursemdl> response = new ApiResponse<>("SUCCESS", saved);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-
+            CourseDto created = courseService.createCourse(dto);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(new ApiResponse<>("SUCCESS", created));
         } catch (Exception e) {
-            ApiResponse<coursemdl> errorResponse = new ApiResponse<>("FAILURE", null);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse<>("FAILURE", null));
         }
     }
 
-    // Mettre à jour un cours
+    // 🔁 Modifier un cours
     @PutMapping("/updateById/{id}")
     public ResponseEntity<ApiResponse<CourseDto>> updateCourse(
             @PathVariable Integer id,
             @RequestBody CourseDto dto) {
-        try {
-            Optional<CourseDto> updatedCourse = courseService.updateCourse(id, dto);
 
-            if (updatedCourse.isPresent()) {
-                ApiResponse<CourseDto> response = new ApiResponse<>("SUCCESS", updatedCourse.get());
-                return ResponseEntity.ok(response);
-            } else {
-                ApiResponse<CourseDto> response = new ApiResponse<>("FAILURE", null);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-            }
-        } catch (Exception e) {
-            ApiResponse<CourseDto> errorResponse = new ApiResponse<>("FAILURE", null);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        Optional<CourseDto> updated = courseService.updateCourse(id, dto);
+
+        if (updated.isPresent()) {
+            return ResponseEntity.ok(new ApiResponse<>("SUCCESS", updated.get()));
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse<>("FAILURE", null));
         }
     }
 
-    // Supprimer un cours
+    // ❌ Supprimer un cours
     @DeleteMapping("/deleteById/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteCourse(@PathVariable Integer id) {
-        try {
-            boolean deleted = courseService.deleteCourse(id);
+        boolean deleted = courseService.deleteCourse(id);
 
-            if (deleted) {
-                ApiResponse<Void> response = new ApiResponse<>("SUCCESS", null);
-                return ResponseEntity.ok(response);
-            } else {
-                ApiResponse<Void> response = new ApiResponse<>("FAILURE", null);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-            }
-        } catch (Exception e) {
-            ApiResponse<Void> errorResponse = new ApiResponse<>("FAILURE", null);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        if (deleted) {
+            return ResponseEntity.ok(new ApiResponse<>("SUCCESS", null));
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse<>("FAILURE", null));
         }
     }
 }

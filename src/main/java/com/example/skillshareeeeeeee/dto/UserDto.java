@@ -4,18 +4,18 @@ public class UserDto {
     private Integer id;
     private String email;
     private String username;
-    private String filepath;
+    private byte[] image; // Remplace filepath
     private String password;
 
     // Constructeurs
     public UserDto() {
     }
 
-    public UserDto(Integer id, String email, String username, String filepath, String password) {
+    public UserDto(Integer id, String email, String username, byte[] image, String password) {
         this.id = id;
         this.email = email;
         this.username = username;
-        this.filepath = filepath;
+        this.image = image;
         this.password=password;
     }
 
@@ -44,12 +44,12 @@ public class UserDto {
         this.username = username;
     }
 
-    public String getFilepath() {
-        return filepath;
+    public byte[]  getImage() {
+        return image;
     }
 
-    public void setFilepath(String filepath) {
-        this.filepath = filepath;
+    public void setImage(byte[] image ) {
+        this.image = image;
     }
 
     public String getPassword() { return password;

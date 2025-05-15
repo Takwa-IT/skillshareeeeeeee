@@ -4,16 +4,16 @@ public class CategoryDto {
 
     private Integer id;
     private String name;
-    private String urlImg;
+    private byte[] image; // Ajout du champ image
 
     // Constructeurs
     public CategoryDto() {
     }
 
-    public CategoryDto(Integer id, String name, String urlImg) {
+    public CategoryDto(Integer id, String name, byte[] image) {
         this.id = id;
         this.name = name;
-        this.urlImg = urlImg;
+        this.image = image;
     }
 
     // Getters
@@ -25,9 +25,7 @@ public class CategoryDto {
         return name;
     }
 
-    public String getUrlImg() {
-        return urlImg;
-    }
+    public byte[] getImage() { return image; }
 
     // Setters
     public void setId(Integer id) {
@@ -38,7 +36,6 @@ public class CategoryDto {
         this.name = name;
     }
 
-    public void setUrlImg(String urlImg) {
-        this.urlImg = urlImg;
-    }
+    public void setImage(byte[] image) { this.image = image; }
+
 }

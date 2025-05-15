@@ -3,12 +3,15 @@ package com.example.skillshareeeeeeee.controllers;
 import com.example.skillshareeeeeeee.dto.UserDto;
 import com.example.skillshareeeeeeee.models.ApiResponse;
 import com.example.skillshareeeeeeee.models.usermdl;
+import com.example.skillshareeeeeeee.repositories.userrep;
 import com.example.skillshareeeeeeee.services.usersrvc;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,10 +20,12 @@ import java.util.Optional;
 public class usercntrl {
 
     private final usersrvc userService;
+    private final userrep userRepository;
 
     // Constructeur
-    public usercntrl(usersrvc userService) {
+    public usercntrl(usersrvc userService,userrep userRepository) {
         this.userService = userService;
+        this.userRepository=userRepository;
     }
 
     // Méthode pour mapper UserDto vers usermdl
@@ -29,10 +34,19 @@ public class usercntrl {
         user.setId(userDto.getId());
         user.setEmail(userDto.getEmail());
         user.setUsername(userDto.getUsername());
-        user.setPassword(userDto.getPassword());  // Assure-toi que le champ password est mappé
-        user.setFilepath(userDto.getFilepath());
-        // Ajoute d'autres champs si nécessaire
+        user.setPassword(userDto.getPassword());
+        user.setImage(userDto.getImage()); // Nouveau champ
         return user;
+    }
+
+    private UserDto convertToDto(usermdl user) {
+        return new UserDto(
+                user.getId(),
+                user.getEmail(),
+                user.getUsername(),
+                user.getImage(),      // byte[]
+                user.getPassword()
+        );
     }
 
     // Récupérer tous les utilisateurs
@@ -45,15 +59,14 @@ public class usercntrl {
 
     // Récupérer un utilisateur par ID
     @GetMapping("/get/{id}")
-    public ResponseEntity<ApiResponse<usermdl>> getUserById(@PathVariable Integer id) {
+    public ResponseEntity<ApiResponse<UserDto>> getUserById(@PathVariable Integer id) {
         Optional<UserDto> userOptional = userService.getUserById(id);
 
         if (userOptional.isPresent()) {
-            usermdl user = mapToUserModel(userOptional.get());  // Utilisation de la méthode de mapping
-            ApiResponse<usermdl> response = new ApiResponse<>("success",  user);
+            ApiResponse<UserDto> response = new ApiResponse<>("success", userOptional.get());
             return ResponseEntity.ok(response);
         } else {
-            ApiResponse<usermdl> response = new ApiResponse<>("failure",  null);
+            ApiResponse<UserDto> response = new ApiResponse<>("failure", null);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
@@ -96,6 +109,24 @@ public class usercntrl {
         } else {
             ApiResponse<Void> errorResponse = new ApiResponse<>("FAILURE", null);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
+    }
+
+    @PostMapping("/uploadImage/{id}")
+    public ResponseEntity<ApiResponse<UserDto>> uploadImage(@PathVariable Integer id,
+                                                            @RequestParam("image") MultipartFile imageFile) throws IOException {
+
+        Optional<usermdl> userOptional = userRepository.findById(id);
+        if (userOptional.isPresent()) {
+            usermdl user = userOptional.get();
+            user.setImage(imageFile.getBytes());
+            userRepository.save(user);
+
+            ApiResponse<UserDto> response = new ApiResponse<>("success", convertToDto(user));
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse<>("failure", null));
         }
     }
 }

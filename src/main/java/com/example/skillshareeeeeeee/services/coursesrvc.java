@@ -1,146 +1,151 @@
 package com.example.skillshareeeeeeee.services;
 
+import com.example.skillshareeeeeeee.dto.CommentDTO;
 import com.example.skillshareeeeeeee.dto.CourseDto;
+import com.example.skillshareeeeeeee.dto.LessonDto;
 import com.example.skillshareeeeeeee.models.Category;
 import com.example.skillshareeeeeeee.models.coursemdl;
 import com.example.skillshareeeeeeee.models.usermdl;
 import com.example.skillshareeeeeeee.repositories.categoryrep;
 import com.example.skillshareeeeeeee.repositories.courserep;
 import com.example.skillshareeeeeeee.repositories.userrep;
-import jakarta.transaction.Transactional;
+import com.example.skillshareeeeeeee.services.commentsrvc;
+import com.example.skillshareeeeeeee.services.lessonsrvc;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class coursesrvc {
 
     private final courserep courseRepository;
-    private categoryrep categoryRepository;
-    private userrep userRepository;
-    public coursesrvc(courserep courseRepository, categoryrep categoryRepository, userrep userRepository) {
-        this.courseRepository = courseRepository;
-        this.categoryRepository = categoryRepository;
-        this.userRepository = userRepository;
+    private final lessonsrvc lessonService;
+    private final commentsrvc commentService;
 
+    private final userrep userRepository;
+    private final categoryrep categoryRepository;
+
+    public coursesrvc(courserep courseRepository, lessonsrvc lessonService,userrep userRepository, commentsrvc commentService,categoryrep categoryRepository) {
+        this.courseRepository = courseRepository;
+        this.lessonService = lessonService;
+        this.commentService = commentService;
+        this.userRepository=userRepository;
+        this.categoryRepository=categoryRepository;
     }
-    // Créer un cours
-    // Récupérer tous les cours (version DTO)
+
+    // 🔍 Convertir un modèle en DTO
+    public CourseDto convertToDto(coursemdl course) {
+        List<CommentDTO> commentDtos = course.getComments().stream()
+                .map(comment -> new CommentDTO(
+                        comment.getId(),
+                        comment.getDescription(),
+                        comment.getUser().getId(),
+                        comment.getCourse().getId()
+                ))
+                .collect(Collectors.toList());
+
+        List<LessonDto> lessonDtos = course.getLessons().stream()
+                .map(lesson -> new LessonDto(
+                        lesson.getId(),
+                        lesson.getTitle(),
+                        lesson.getUrlPdf(),
+                        lesson.getCourse().getId()
+                ))
+                .collect(Collectors.toList());
+
+        return new CourseDto(
+                course.getId(),
+                course.getTitle(),
+                course.getDescription(),
+                course.getDownload_counts(),
+                course.getView_counts(),
+                course.getOwner().getId(),
+                course.getCategory().getId(),
+                commentDtos,
+                lessonDtos
+        );
+    }
+
+    // 📤 Retourne une liste de DTOs
     public List<CourseDto> getAllCourses() {
         return courseRepository.findAll().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
-    // Récupérer un cours par ID
+    // 📥 Récupérer un cours par ID
     public Optional<CourseDto> getCourseById(Integer id) {
-        return courseRepository.findById(id)
-                .map(this::convertToDto);
+        return courseRepository.findById(id).map(this::convertToDto);
     }
 
-    // Mettre à jour un cours
-    @Transactional
+    // ✅ Créer un nouveau cours
+    public CourseDto createCourse(CourseDto dto) {
+        coursemdl course = new coursemdl();
+        course.setTitle(dto.getTitle());
+        course.setDescription(dto.getDescription());
+        course.setDownload_counts(dto.getDownloadCounts());
+        course.setView_counts(dto.getViewCounts());
+
+        if (dto.getUserId() != null) {
+            usermdl owner = userRepository.findById(dto.getUserId())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            course.setOwner(owner);
+        }
+
+        if (dto.getCategoryId() != null) {
+            Category category = categoryRepository.findById(dto.getCategoryId())
+                    .orElseThrow(() -> new RuntimeException("Category not found"));
+            course.setCategory(category);
+        }
+
+        coursemdl saved = courseRepository.save(course);
+        return convertToDto(saved);
+    }
+
+    // 🔄 Mettre à jour un cours existant
     public Optional<CourseDto> updateCourse(Integer id, CourseDto dto) {
-        return courseRepository.findById(id).map(existingCourse -> {
+        return courseRepository.findById(id)
+                .map(course -> {
+                    course.setTitle(dto.getTitle());
+                    course.setDescription(dto.getDescription());
+                    course.setDownload_counts(dto.getDownloadCounts());
+                    course.setView_counts(dto.getViewCounts());
 
-            existingCourse.setTitle(dto.getTitle());
-            existingCourse.setDescription(dto.getDescription());
-            existingCourse.setDownload_counts(dto.getDownloadCounts());
-            existingCourse.setView_counts(dto.getViewCounts());
+                    if (dto.getUserId() != null) {
+                        usermdl owner = userRepository.findById(dto.getUserId())
+                                .orElseThrow(() -> new RuntimeException("User not found"));
+                        course.setOwner(owner);
+                    }
 
+                    if (dto.getCategoryId() != null) {
+                        Category category = categoryRepository.findById(dto.getCategoryId())
+                                .orElseThrow(() -> new RuntimeException("Category not found"));
+                        course.setCategory(category);
+                    }
 
-            // Gestion de l'utilisateur (owner)
-            if (dto.getId() != null) {
-                usermdl user;
-                // Si l'utilisateur existe déjà en base
-                if (userRepository.existsById(dto.getId())) {
-                    user = userRepository.findById(dto.getId())
-                            .orElseThrow(() -> new RuntimeException("User not found"));
-                } else {
-                    // Si c'est un nouvel utilisateur (transitoire)
-                    user = new usermdl();
-                    user.setId(dto.getId()); // ⚠️ Cela marche uniquement si l'utilisateur est déjà existant
-                    // Si pas sûr, il faut charger l'utilisateur depuis la base
-                }
-
-                existingCourse.setOwner(user);
-            }
-
-            coursemdl updatedCourse = courseRepository.save(existingCourse);
-            return convertToDto(updatedCourse);
-        });
+                    coursemdl updated = courseRepository.save(course);
+                    return convertToDto(updated);
+                });
     }
 
-    // Supprimer un cours
+    // 🗑️ Supprimer un cours
     public boolean deleteCourse(Integer id) {
-        courseRepository.deleteById(id);
+        if (!courseRepository.existsById(id)) {
+            return false;
+        }
+
+        coursemdl course = courseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+
+        // Optionnel : désassocier les relations avant suppression
+        course.getLessons().clear();
+        course.getComments().clear();
+
+        courseRepository.delete(course); // ou deleteById si tu veux juste supprimer
         return true;
     }
-
-    // Conversion vers DTO
-    // Mapper CourseDto vers Course
-
-    // Vérifier si le titre du cours existe
-    public boolean courseExistsByTitle(String title) {
-        return courseRepository.existsByTitle(title);
-    }
-
-    // Trouver un cours par ID
-    public coursemdl findCourseById(Integer id) {
-        return courseRepository.findById(id).orElseThrow(() -> new RuntimeException("Course not found"));
-    }
-
-    // Mapper CourseDto vers Course
-    private coursemdl mapToCourseModel(CourseDto courseDto) {
-        coursemdl course = new coursemdl();
-        course.setId(courseDto.getId());
-        course.setTitle(courseDto.getTitle());
-        course.setDescription(courseDto.getDescription());
-
-        // Créer un objet Category en utilisant l'ID de la catégorie
-        Category category = new Category();
-        category.setId(courseDto.getCategoryId());  // Utiliser l'ID pour obtenir la catégorie
-        // Vous pouvez également ajouter d'autres propriétés de la catégorie si nécessaire
-        course.setCategory(category);  // Assurez-vous que le champ setCategory attend un objet de type Category
-
-        return course;
-    }
-
-    public CourseDto convertToDto(coursemdl course) {
-        CourseDto courseDto = new CourseDto();
-        courseDto.setId(course.getId());
-        courseDto.setTitle(course.getTitle());
-        courseDto.setDescription(course.getDescription());
-        courseDto.setViewCounts(course.getView_counts());
-        courseDto.setDownloadCounts(course.getDownload_counts());
-
-        // Associer l'ID de la catégorie dans le DTO
-        Category category = course.getCategory();
-        if (category != null) {
-            courseDto.setCategoryId(category.getId());
-        }
-
-        return courseDto;
-    }
-
-    public coursemdl findById(Integer id) {
-        return courseRepository.findById(id).orElse(null);
-    }
-
-
-    @Transactional
-    public coursemdl createCourse(coursemdl course) {
-        usermdl user = course.getOwner();
-
-        // Si l'utilisateur n'a pas encore été sauvegardé
-        if (user.getId() == null) {
-            user = userRepository.save(user); // ✔️ Sauvegarde d'abord l'utilisateur
-            course.setOwner(user); // Met à jour la référence
-        }
-
-        return courseRepository.save(course); // Ensuite on sauvegarde le cours
-    }
-
 }

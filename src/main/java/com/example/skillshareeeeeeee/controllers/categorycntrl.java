@@ -7,7 +7,9 @@ import com.example.skillshareeeeeeee.services.categorysrvc;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,7 +28,7 @@ public class categorycntrl {
         Category category = new Category();
         category.setId(dto.getId());
         category.setName(dto.getName());
-        category.setUrlImg(dto.getUrlImg());
+        category.setImage(dto.getImage());
         return category;
     }
 
@@ -81,5 +83,24 @@ public class categorycntrl {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ApiResponse<>("failure", null));
         }
+    }
+
+    @PostMapping("/upload")
+    public ResponseEntity<ApiResponse<CategoryDto>> uploadCategoryWithImage(
+            @RequestParam("name") String name,
+            @RequestParam("image") MultipartFile imageFile) throws IOException {
+
+        if (imageFile.isEmpty()) {
+            throw new IllegalArgumentException("Le fichier image est requis");
+        }
+
+        Category category = new Category();
+        category.setName(name);
+        category.setImage(imageFile.getBytes());
+
+        Category saved = categoryService.createCategory(category);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse<>("success", categoryService.convertToDto(saved)));
     }
 }

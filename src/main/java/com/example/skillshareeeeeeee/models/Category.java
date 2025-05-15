@@ -19,7 +19,8 @@ public class Category {
 
     private String name;
 
-    private String urlImg;
+    @Lob // Indique que c'est un grand objet binaire
+    private byte[] image;
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
@@ -30,9 +31,9 @@ public class Category {
         // Constructeur par défaut requis par JPA
     }
 
-    public Category(String name, String urlImg) {
+    public Category(String name, byte[] image) {
         this.name = name;
-        this.urlImg = urlImg;
+        this.image=image;
     }
 
     // Getters
@@ -44,9 +45,7 @@ public class Category {
         return name;
     }
 
-    public String getUrlImg() {
-        return urlImg;
-    }
+    public byte[] getImage() { return image; }
 
     public List<coursemdl> getCourses() {
         return courses;
@@ -61,8 +60,8 @@ public class Category {
         this.name = name;
     }
 
-    public void setUrlImg(String urlImg) {
-        this.urlImg = urlImg;
+    public void setImage(byte[] getImage) {
+        this.image = image;
     }
 
     public void setCourses(List<coursemdl> courses) {
@@ -85,7 +84,7 @@ public class Category {
         return "Category{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", urlImg='" + urlImg + '\'' +
+                ", image='" + image + '\'' +
                 ", coursesCount=" + courses.size() +
                 '}';
     }

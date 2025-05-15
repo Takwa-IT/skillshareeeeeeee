@@ -4,6 +4,7 @@ import com.example.skillshareeeeeeee.dto.UserDto;
 import com.example.skillshareeeeeeee.models.usermdl;
 import com.example.skillshareeeeeeee.repositories.courserep;
 import com.example.skillshareeeeeeee.repositories.userrep;
+import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -55,7 +56,7 @@ public class usersrvc {
                     if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
                         user.setPassword(passwordEncoder.encode(userDetails.getPassword()));
                     }
-                    user.setFilepath(userDetails.getFilepath());
+                    user.setImage(userDetails.getImage());
 
                     // Mise à jour des cours si nécessaire
                     if (userDetails.getCourses() != null) {
@@ -68,38 +69,43 @@ public class usersrvc {
     }
 
     // Supprimer un utilisateur + gérer les relations avec les cours
+    @Transactional
     public boolean deleteUser(Integer id) {
         if (!userRepository.existsById(id)) {
             return false;
         }
 
-        usermdl user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        // Charger l'utilisateur avec ses cours et dépôts
+        usermdl user = userRepository.findById(id).orElseThrow(
+                () -> new RuntimeException("User not found"));
 
-        // Détacher tous les cours liés à cet utilisateur
+        // Détacher les cours
         if (user.getCourses() != null && !user.getCourses().isEmpty()) {
             user.getCourses().forEach(course -> course.setOwner(null));
         }
 
-        // Sauvegarder les modifications avant suppression
+        // Détacher les commentaires
+        if (user.getComments() != null && !user.getComments().isEmpty()) {
+            user.getComments().forEach(comment -> comment.setUser(null));
+        }
+
+        // Sauvegarder les modifications pour éviter TransientObjectException
         userRepository.save(user);
 
         // Enfin, supprimer l'utilisateur
         userRepository.deleteById(id);
-
         return true;
     }
-
     // Conversion vers DTO
     public UserDto convertToDto(usermdl user) {
         return new UserDto(
                 user.getId(),
                 user.getEmail(),
                 user.getUsername(),
-                user.getFilepath(),
+                user.getImage(),      // Champ image (byte[])
                 user.getPassword()
         );
     }
-
     // Trouver par email
     public Optional<usermdl> findByEmail(String email) {
         return userRepository.findByEmail(email);
@@ -115,4 +121,6 @@ public class usersrvc {
         return userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
+
+
 }

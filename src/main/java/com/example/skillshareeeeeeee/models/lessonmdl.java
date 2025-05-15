@@ -14,7 +14,7 @@ public class lessonmdl {
     private Integer id;
 
     private String title;
-
+    @Lob
     @Column(name = "url_pdf")
     private String urlPdf;
 

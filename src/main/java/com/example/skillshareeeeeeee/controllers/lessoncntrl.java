@@ -5,13 +5,27 @@ import com.example.skillshareeeeeeee.models.ApiResponse;
 import com.example.skillshareeeeeeee.models.coursemdl;
 import com.example.skillshareeeeeeee.models.lessonmdl;
 import com.example.skillshareeeeeeee.repositories.courserep;
+import com.example.skillshareeeeeeee.services.FileStorageService;
 import com.example.skillshareeeeeeee.services.lessonsrvc;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.core.io.Resource; // ✅ Import correct
+import org.springframework.core.io.*;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/lessons")
@@ -19,10 +33,17 @@ public class lessoncntrl {
 
     private final lessonsrvc lessonService;
     private final courserep courseRepository;
+    private final FileStorageService fileStorageService;
 
-    public lessoncntrl(lessonsrvc lessonService, courserep courseRepository) {
+    private static final String FILE_DIRECTORY = "C:/Users/takwa/IdeaProjects/skillshareeeeeeee/uploads/profiles/";
+
+
+
+    public lessoncntrl(lessonsrvc lessonService, courserep courseRepository, FileStorageService fileStorageService) {
         this.lessonService = lessonService;
         this.courseRepository = courseRepository;
+        this.fileStorageService = fileStorageService;
+        ;
     }
 
     // Mapping : LessonDto → lessonmdl
@@ -153,6 +174,71 @@ public class lessoncntrl {
         } catch (Exception e) {
             ApiResponse<List<LessonDto>> errorResponse = new ApiResponse<>("FAILURE", null);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    @PostMapping("/upload")
+    public ResponseEntity<ApiResponse<LessonDto>> uploadPdf(
+            @RequestParam("title") String title,
+            @RequestParam("pdf") MultipartFile pdfFile,
+            @RequestParam("courseId") Integer courseId) {
+
+        try {
+            // 1. Trouver le cours
+            coursemdl course = courseRepository.findById(courseId)
+                    .orElseThrow(() -> new RuntimeException("Cours non trouvé"));
+
+            // 2. Stocker le PDF
+            String fileUrl = fileStorageService.storeFile(pdfFile);
+
+            // 3. Créer la leçon
+            lessonmdl lesson = new lessonmdl();
+            lesson.setTitle(title);
+            lesson.setUrlPdf(fileUrl);
+            lesson.setCourse(course); // ✅ Associer le cours
+
+            lessonmdl savedLesson = lessonService.createLesson(lesson);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>("success", lessonService.convertToDto(savedLesson)));
+
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse<>("failure", null));
+        }
+    }
+
+    @GetMapping("/files/{fileName:.+}")
+    public ResponseEntity<Resource> downloadFile(@PathVariable String fileName) {
+        try {
+            // Décoder les caractères spéciaux (ex: é, à, espaces encodés)
+            fileName = URLDecoder.decode(fileName, StandardCharsets.UTF_8);
+
+            // Construire le chemin complet vers le fichier
+            Path filePath = Paths.get(FILE_DIRECTORY).resolve(fileName).normalize();
+            Resource resource = new UrlResource(filePath.toUri());
+
+            if (resource.exists() && resource.isReadable()) {
+                return ResponseEntity.ok()
+                        .contentType(MediaType.APPLICATION_PDF)
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                        .body(resource);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("Erreur lors de la récupération du fichier.");
+        }
+    }
+
+    @GetMapping("/files")
+    public ResponseEntity<List<String>> listAllFiles() {
+        try {
+            List<String> files = Files.list(Paths.get(FILE_DIRECTORY))
+                    .map(path -> path.getFileName().toString())
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(files);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

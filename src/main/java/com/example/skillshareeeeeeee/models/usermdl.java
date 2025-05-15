@@ -21,8 +21,8 @@ public class usermdl {
 
     private String password;
 
-    private String filepath;
-
+    @Lob // Pour stocker l'image en BLOB
+    private byte[] image;
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "user")
     @JsonIgnore
     private Set<commentmdl> comments;
@@ -80,13 +80,8 @@ public class usermdl {
         this.password = password;
     }
 
-    public String getFilepath() {
-        return filepath;
-    }
-
-    public void setFilepath(String filepath) {
-        this.filepath = filepath;
-    }
+    public byte[] getImage() { return image; }
+    public void setImage(byte[] image) { this.image = image; }
 
     public List<coursemdl> getCourses() {
         return courses;

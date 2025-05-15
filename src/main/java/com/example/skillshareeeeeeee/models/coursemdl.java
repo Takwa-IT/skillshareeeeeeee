@@ -8,6 +8,7 @@ import java.util.List;
 @Entity
 @Table(name = "courses")
 public class coursemdl {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -27,13 +28,13 @@ public class coursemdl {
     private usermdl owner;
 
     @OneToMany(mappedBy = "course", fetch = FetchType.EAGER)
-    private List<lessonmdl> lessons= new ArrayList<>();
+    private List<lessonmdl> lessons = new ArrayList<>();
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<commentmdl> comments = new ArrayList<>();
 
-    @ManyToOne(optional = false) // ou @NotNull
+    @ManyToOne(optional = false)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
@@ -43,15 +44,19 @@ public class coursemdl {
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private List<CourseFollow> follows = new ArrayList<>();
 
+    @Transient
+    private Integer number; // Champ non persisté en base
+
     // Constructeurs
-    public coursemdl() {
-    }
+    public coursemdl() {}
 
     public coursemdl(String title, String description, usermdl owner) {
         this.title = title;
         this.description = description;
         this.owner = owner;
     }
+
+    // Getters & Setters (sans doublons)
 
     public Integer getId() {
         return id;
@@ -81,16 +86,16 @@ public class coursemdl {
         return viewCounts;
     }
 
-    public void setView_counts(Integer view_counts) {
-        this.viewCounts = view_counts;
+    public void setView_counts(Integer viewCounts) {
+        this.viewCounts = viewCounts;
     }
 
     public Integer getDownload_counts() {
         return downloadCounts;
     }
 
-    public void setDownload_counts(Integer download_counts) {
-        this.downloadCounts = download_counts;
+    public void setDownload_counts(Integer downloadCounts) {
+        this.downloadCounts = downloadCounts;
     }
 
     public usermdl getOwner() {
@@ -101,13 +106,13 @@ public class coursemdl {
         this.owner = owner;
     }
 
-    public void setCategory(Category category) {
-        this.category = category;
-    }
     public Category getCategory() {
         return category;
     }
 
+    public void setCategory(Category category) {
+        this.category = category;
+    }
 
     public List<lessonmdl> getLessons() {
         return lessons;
@@ -121,12 +126,31 @@ public class coursemdl {
         return comments;
     }
 
-
     public void setComments(List<commentmdl> comments) {
         this.comments = comments;
     }
 
-    // Méthodes utilitaires
+    public List<CourseDeposit> getDeposits() {
+        return deposits;
+    }
+
+    public void setDeposits(List<CourseDeposit> deposits) {
+        this.deposits = deposits;
+    }
+
+    public List<CourseFollow> getFollows() {
+        return follows;
+    }
+
+    public void setFollows(List<CourseFollow> follows) {
+        this.follows = follows;
+    }
+
+    public Integer getNumber() {
+        return lessons != null ? lessons.size() : 0;
+    }
+
+    // Méthodes utilitaires pour relations bidirectionnelles
     public void incrementViewCount() {
         this.viewCounts++;
     }
@@ -140,12 +164,20 @@ public class coursemdl {
         lesson.setCourse(this);
     }
 
+    public void removeLesson(lessonmdl lesson) {
+        lessons.remove(lesson);
+        if (lesson.getCourse() != null) {
+            lesson.setCourse(null);
+        }
+    }
+
     public void addComment(commentmdl comment) {
         comments.add(comment);
         comment.setCourse(this);
     }
 
-
-    // Méthode removeDownloader pour complément
-
+    public void removeComment(commentmdl comment) {
+        comments.remove(comment);
+        comment.setCourse(null);
+    }
 }

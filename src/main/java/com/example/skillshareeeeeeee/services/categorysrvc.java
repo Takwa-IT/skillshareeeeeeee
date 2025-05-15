@@ -71,7 +71,7 @@ public class categorysrvc {
         return new CategoryDto(
                 category.getId(),
                 category.getName(),
-                category.getUrlImg()
+                category.getImage()
         );
     }
 }

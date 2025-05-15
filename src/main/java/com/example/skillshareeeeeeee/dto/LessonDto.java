@@ -16,6 +16,12 @@ public class LessonDto {
         this.courseId = courseId;
     }
 
+    public LessonDto(Integer id, String title, String urlPdf) {
+        this.id = id;
+        this.title = title;
+        this.urlPdf = urlPdf;
+    }
+
     // Getters et Setters
     public Integer getId() {
         return id;
