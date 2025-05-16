@@ -26,9 +26,7 @@ public class Category {
     @JsonIgnore
     private List<coursemdl> courses = new ArrayList<>();
 
-    // Constructeurs
     public Category() {
-        // Constructeur par défaut requis par JPA
     }
 
     public Category(String name, byte[] image) {
@@ -36,7 +34,6 @@ public class Category {
         this.image=image;
     }
 
-    // Getters
     public Integer getId() {
         return id;
     }
@@ -68,7 +65,6 @@ public class Category {
         this.courses = courses;
     }
 
-    // Méthodes utilitaires pour la gestion bidirectionnelle
     public void addCourse(coursemdl course) {
         courses.add(course);
         course.setCategory(this);

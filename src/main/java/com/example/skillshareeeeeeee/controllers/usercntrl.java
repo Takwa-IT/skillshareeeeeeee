@@ -1,13 +1,14 @@
 package com.example.skillshareeeeeeee.controllers;
 
+import com.example.skillshareeeeeeee.dto.LoginRequest;
 import com.example.skillshareeeeeeee.dto.UserDto;
 import com.example.skillshareeeeeeee.models.ApiResponse;
 import com.example.skillshareeeeeeee.models.usermdl;
 import com.example.skillshareeeeeeee.repositories.userrep;
 import com.example.skillshareeeeeeee.services.usersrvc;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,21 +23,12 @@ public class usercntrl {
     private final usersrvc userService;
     private final userrep userRepository;
 
-    // Constructeur
-    public usercntrl(usersrvc userService,userrep userRepository) {
-        this.userService = userService;
-        this.userRepository=userRepository;
-    }
+    private final PasswordEncoder passwordEncoder;
 
-    // Méthode pour mapper UserDto vers usermdl
-    private usermdl mapToUserModel(UserDto userDto) {
-        usermdl user = new usermdl();
-        user.setId(userDto.getId());
-        user.setEmail(userDto.getEmail());
-        user.setUsername(userDto.getUsername());
-        user.setPassword(userDto.getPassword());
-        user.setImage(userDto.getImage()); // Nouveau champ
-        return user;
+    public usercntrl(usersrvc userService, userrep userRepository, PasswordEncoder passwordEncoder) {
+        this.userService = userService;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     private UserDto convertToDto(usermdl user) {
@@ -44,12 +36,11 @@ public class usercntrl {
                 user.getId(),
                 user.getEmail(),
                 user.getUsername(),
-                user.getImage(),      // byte[]
+                user.getImage(),
                 user.getPassword()
         );
     }
 
-    // Récupérer tous les utilisateurs
     @GetMapping("/getAll")
     public ResponseEntity<ApiResponse<List<UserDto>>> getAllUsers() {
         List<UserDto> users = userService.getAllUsers();
@@ -57,8 +48,7 @@ public class usercntrl {
         return ResponseEntity.ok(response);
     }
 
-    // Récupérer un utilisateur par ID
-    @GetMapping("/get/{id}")
+    @GetMapping("/getById/{id}")
     public ResponseEntity<ApiResponse<UserDto>> getUserById(@PathVariable Integer id) {
         Optional<UserDto> userOptional = userService.getUserById(id);
 
@@ -71,19 +61,19 @@ public class usercntrl {
         }
     }
 
-    // Créer un nouvel utilisateur
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<UserDto>> createUser(@RequestBody usermdl user) {
         if (userService.emailExists(user.getEmail())) {
-            ApiResponse<UserDto> response = new ApiResponse<>("failure",  null);
-            return ResponseEntity.badRequest().body(response);
+            return ResponseEntity.badRequest().body(new ApiResponse<>("failure", null));
         }
+
+        // Hash the password before saving
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+
         usermdl createdUser = userService.createUser(user);
-        ApiResponse<UserDto> response = new ApiResponse<>("success",  userService.convertToDto(createdUser));
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(new ApiResponse<>("success", userService.convertToDto(createdUser)));
     }
 
-    // Mettre à jour un utilisateur
     @PutMapping("/UpdateById/{id}")
     public ResponseEntity<ApiResponse<UserDto>> updateUser(
             @PathVariable Integer id,
@@ -98,7 +88,6 @@ public class usercntrl {
         }
     }
 
-    // Supprimer un utilisateur
     @DeleteMapping("/deleteById/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Integer id) {
         boolean deleted = userService.deleteUser(id);
@@ -127,6 +116,30 @@ public class usercntrl {
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ApiResponse<>("failure", null));
+        }
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<UserDto>> login(@RequestBody LoginRequest request) {
+        Optional<usermdl> userOptional = userRepository.findByEmail(request.getEmail());
+
+        if (userOptional.isPresent()) {
+            usermdl user = userOptional.get();
+
+            System.out.println("Input Password: " + request.getPassword());
+            System.out.println("Stored Hash: " + user.getPassword());
+            System.out.println("PasswordEncoder class: " + passwordEncoder.getClass().getName());
+
+            if (passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+                UserDto dto = convertToDto(user);
+                return ResponseEntity.ok(new ApiResponse<>("SUCCESS", dto));
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(new ApiResponse<>("FAILURE", null));
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse<>("FAILURE", null));
         }
     }
 }

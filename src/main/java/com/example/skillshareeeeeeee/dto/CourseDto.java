@@ -1,10 +1,6 @@
 package com.example.skillshareeeeeeee.dto;
 
-import com.example.skillshareeeeeeee.models.coursemdl;
-import jakarta.persistence.Column;
-
 import java.util.List;
-
 
 public class CourseDto {
 
@@ -15,13 +11,12 @@ public class CourseDto {
     private Integer downloadCounts;
     private Integer userId;
     private Integer categoryId;
-
     private List<CommentDTO> comments;
     private List<LessonDto> lessons;
 
-    // Constructeu
-
-    public CourseDto(Integer id, String title, String description, Integer downloadCounts, Integer viewCounts, Integer userId, Integer categoryId, List<CommentDTO> comments, List<LessonDto> lessons) {
+    public CourseDto(Integer id, String title, String description, Integer downloadCounts,
+                     Integer viewCounts, Integer userId, Integer categoryId,
+                     List<CommentDTO> comments, List<LessonDto> lessons) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -33,7 +28,6 @@ public class CourseDto {
         this.lessons = lessons;
     }
 
-    // Getters
     public Integer getId() { return id; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }

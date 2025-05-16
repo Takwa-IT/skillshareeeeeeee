@@ -9,7 +9,6 @@ public class CommentResponseDTO {
     private Integer userId;
     private Integer courseId;
 
-    // Constructeur
     public CommentResponseDTO(commentmdl comment) {
         this.id = comment.getId();
         this.description = comment.getDescription();

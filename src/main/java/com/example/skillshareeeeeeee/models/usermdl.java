@@ -23,10 +23,9 @@ public class usermdl {
 
     @Lob // Pour stocker l'image en BLOB
     private byte[] image;
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "user")
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "user",cascade = CascadeType.ALL)
     @JsonIgnore
-    private Set<commentmdl> comments;
-
+    private List<commentmdl> comments = new ArrayList<>();
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<coursemdl> courses = new ArrayList<>();
@@ -37,7 +36,6 @@ public class usermdl {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<CourseFollow> follows = new ArrayList<>();
 
-    // Constructeurs
     public usermdl() {
     }
 
@@ -47,7 +45,6 @@ public class usermdl {
         this.password = password;
     }
 
-    // Getters et Setters
     public Integer getId() {
         return id;
     }
@@ -86,29 +83,16 @@ public class usermdl {
     public List<coursemdl> getCourses() {
         return courses;
     }
+    public List<commentmdl> getComments() {
+        return comments;
+    }
 
+    public void setComments(List<commentmdl> comments) {
+        this.comments = comments;
+    }
 
     public void setCourses(List<coursemdl> courses) {
         this.courses = courses;
     }
-
-    public List<commentmdl> getComments() {
-        return (List<commentmdl>) comments;
-    }
-
-
-
-    // Méthode utilitaire pour gérer la relation bidirectionnelle
-    public void addCourse(coursemdl course) {
-        courses.add(course);
-        course.setOwner(this);
-    }
-
-    public void removeCourse(coursemdl course) {
-        courses.remove(course);
-        course.setOwner(null);
-    }
-
-
 
 }

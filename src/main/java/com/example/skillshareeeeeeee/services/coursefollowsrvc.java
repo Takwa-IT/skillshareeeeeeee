@@ -26,7 +26,6 @@ public class coursefollowsrvc {
         this.courseRepository = courseRepository;
     }
 
-    // Conversion entre modèle et DTO
     private CourseFollowDTO convertToDto(CourseFollow follow) {
             return new CourseFollowDTO(
                     follow.getId(),
@@ -38,14 +37,12 @@ public class coursefollowsrvc {
             );
         }
 
-    // Récupérer tous les suivis
     public List<ApiResponse<CourseFollowDTO>> getAllFollows() {
         return followRepository.findAll().stream()
                 .map(follow -> new ApiResponse<>("SUCCESS", convertToDto(follow)))
                 .collect(Collectors.toList());
     }
 
-    // Récupérer un suivi par ID
     public ApiResponse<CourseFollowDTO> getFollowById(Integer id) {
         return followRepository.findById(id)
                 .map(this::convertToDto)
@@ -53,7 +50,6 @@ public class coursefollowsrvc {
                 .orElse(new ApiResponse<>("FAILURE", null));
     }
 
-    // Créer un suivi
     public ApiResponse<CourseFollowDTO> createFollow(CourseFollowDTO dto) {
         try {
             usermdl user = userRepository.findById(dto.getUserId())
@@ -77,7 +73,6 @@ public class coursefollowsrvc {
         }
     }
 
-    // Mettre à jour un suivi
     public ApiResponse<CourseFollowDTO> updateFollow(Integer id, CourseFollowDTO dto) {
         return followRepository.findById(id).map(existing -> {
             if (dto.getDate() != null) existing.setDate(dto.getDate());
@@ -104,7 +99,6 @@ public class coursefollowsrvc {
         }).orElse(new ApiResponse<>("FAILURE", null));
     }
 
-    // Supprimer un suivi
     public ApiResponse<Void> deleteFollow(Integer id) {
         if (!followRepository.existsById(id)) {
             return new ApiResponse<>("FAILURE", null);

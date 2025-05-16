@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public class usersrvc {
 
     private final userrep userRepository;
-    private final courserep courseRepository; // Ajout du repository des cours
+    private final courserep courseRepository;
     private final PasswordEncoder passwordEncoder;
 
     public usersrvc(userrep userRepository, courserep courseRepository, PasswordEncoder passwordEncoder) {
@@ -25,7 +25,6 @@ public class usersrvc {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // Créer un utilisateur
     public usermdl createUser(usermdl user) {
         if (user.getCourses() != null) {
             user.getCourses().forEach(course -> course.setOwner(user));
@@ -34,20 +33,17 @@ public class usersrvc {
         return userRepository.save(user);
     }
 
-    // Récupérer tous les utilisateurs (version DTO)
     public List<UserDto> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
-    // Récupérer un utilisateur par ID
     public Optional<UserDto> getUserById(Integer id) {
         return userRepository.findById(id)
                 .map(this::convertToDto);
     }
 
-    // Mettre à jour un utilisateur
     public Optional<UserDto> updateUser(Integer id, usermdl userDetails) {
         return userRepository.findById(id)
                 .map(user -> {
@@ -58,7 +54,6 @@ public class usersrvc {
                     }
                     user.setImage(userDetails.getImage());
 
-                    // Mise à jour des cours si nécessaire
                     if (userDetails.getCourses() != null) {
                         userDetails.getCourses().forEach(course -> course.setOwner(user));
                         user.setCourses(userDetails.getCourses());
@@ -68,59 +63,40 @@ public class usersrvc {
                 });
     }
 
-    // Supprimer un utilisateur + gérer les relations avec les cours
     @Transactional
     public boolean deleteUser(Integer id) {
         if (!userRepository.existsById(id)) {
             return false;
         }
 
-        // Charger l'utilisateur avec ses cours et dépôts
         usermdl user = userRepository.findById(id).orElseThrow(
                 () -> new RuntimeException("User not found"));
 
-        // Détacher les cours
         if (user.getCourses() != null && !user.getCourses().isEmpty()) {
             user.getCourses().forEach(course -> course.setOwner(null));
         }
 
-        // Détacher les commentaires
         if (user.getComments() != null && !user.getComments().isEmpty()) {
             user.getComments().forEach(comment -> comment.setUser(null));
         }
 
-        // Sauvegarder les modifications pour éviter TransientObjectException
         userRepository.save(user);
 
-        // Enfin, supprimer l'utilisateur
         userRepository.deleteById(id);
         return true;
     }
-    // Conversion vers DTO
     public UserDto convertToDto(usermdl user) {
         return new UserDto(
                 user.getId(),
                 user.getEmail(),
                 user.getUsername(),
-                user.getImage(),      // Champ image (byte[])
+                user.getImage(),
                 user.getPassword()
         );
     }
-    // Trouver par email
-    public Optional<usermdl> findByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
 
-    // Vérifier si email existe
     public boolean emailExists(String email) {
         return userRepository.existsByEmail(email);
     }
-
-    // Trouver par ID ou lancer une exception
-    public usermdl findById(Integer id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-    }
-
 
 }

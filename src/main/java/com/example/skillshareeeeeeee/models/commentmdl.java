@@ -23,10 +23,7 @@ public class commentmdl {
     @JsonIgnore
     private coursemdl course;
 
-    // Constructeurs
-
     public commentmdl() {
-        // Requis par JPA
     }
 
     public commentmdl(String description, usermdl user, coursemdl course) {
@@ -34,8 +31,6 @@ public class commentmdl {
         this.user = user;
         this.course = course;
     }
-
-    // Getters
 
     public Integer getId() {
         return id;
@@ -52,8 +47,6 @@ public class commentmdl {
     public coursemdl getCourse() {
         return course;
     }
-
-    // Setters avec gestion bidirectionnelle
 
     public void setDescription(String description) {
         this.description = description;
@@ -76,15 +69,7 @@ public class commentmdl {
         this.course = course;
         if (course != null && !course.getComments().contains(this)) {
             course.getComments().add(this);
-        }
-    }
-
-    // Méthodes utilitaires
-
-    public void associateWith(usermdl user, coursemdl course) {
-        setUser(user);
-        setCourse(course);
-    }
+        }}
 
     @Override
     public String toString() {

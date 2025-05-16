@@ -4,9 +4,8 @@ public class CategoryDto {
 
     private Integer id;
     private String name;
-    private byte[] image; // Ajout du champ image
+    private byte[] image;
 
-    // Constructeurs
     public CategoryDto() {
     }
 
@@ -16,7 +15,6 @@ public class CategoryDto {
         this.image = image;
     }
 
-    // Getters
     public Integer getId() {
         return id;
     }
@@ -27,7 +25,6 @@ public class CategoryDto {
 
     public byte[] getImage() { return image; }
 
-    // Setters
     public void setId(Integer id) {
         this.id = id;
     }

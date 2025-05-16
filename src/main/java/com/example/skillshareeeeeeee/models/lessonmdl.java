@@ -24,7 +24,6 @@ public class lessonmdl {
 
     // Constructeurs
     public lessonmdl() {
-        // Constructeur par défaut requis par JPA
     }
 
     public lessonmdl(String title, String urlPdf, coursemdl course) {
@@ -33,7 +32,6 @@ public class lessonmdl {
         this.course = course;
     }
 
-    // Getters
     public Integer getId() {
         return id;
     }
@@ -64,22 +62,15 @@ public class lessonmdl {
     }
 
     public void setCourse(coursemdl course) {
-        // Détacher de l'ancien cours
         if (this.course != null) {
             this.course.getLessons().remove(this);
         }
 
         this.course = course;
 
-        // Attacher au nouveau cours
         if (course != null && !course.getLessons().contains(this)) {
             course.getLessons().add(this);
         }
-    }
-
-    // Méthode utilitaire
-    public void associateWithCourse(coursemdl course) {
-        this.setCourse(course);
     }
 
     @Override

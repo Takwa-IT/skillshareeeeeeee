@@ -19,7 +19,6 @@ public class commentcntrl {
         this.commentService = commentService;
     }
 
-    // Créer un commentaire
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<CommentDTO>> createComment(@RequestBody CommentDTO request) {
         try {
@@ -32,7 +31,6 @@ public class commentcntrl {
         }
     }
 
-    // Récupérer tous les commentaires
     @GetMapping("/getAll")
     public ResponseEntity<ApiResponse<List<CommentDTO>>> getAllComments() {
         try {
@@ -44,12 +42,9 @@ public class commentcntrl {
             return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-    // Récupérer un commentaire par ID
     @GetMapping("/getById/{id}")
     public ResponseEntity<ApiResponse<CommentDTO>> getCommentById(@PathVariable Integer id) {
         try {
-            // Appel explicite à getCommentById qui peut lever une CommentNotFoundException
             CommentDTO comment = commentService.getCommentById(id)
                     .orElseThrow(() -> new commentsrvc.CommentNotFoundException("Comment not found"));
 
@@ -65,7 +60,6 @@ public class commentcntrl {
         }
     }
 
-    // Mettre à jour un commentaire
     @PutMapping("/Update/{id}")
     public ResponseEntity<ApiResponse<CommentDTO>> updateComment(@PathVariable Integer id,
                                                                  @RequestParam String description) {
@@ -82,7 +76,6 @@ public class commentcntrl {
         }
     }
 
-    // Supprimer un commentaire
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteComment(@PathVariable Integer id) {
         try {
@@ -98,7 +91,6 @@ public class commentcntrl {
         }
     }
 
-    // Filtrer par utilisateur
     @GetMapping("/getByUser/{userId}")
     public ResponseEntity<ApiResponse<List<CommentDTO>>> getCommentsByUserId(@PathVariable Integer userId) {
         try {
@@ -119,7 +111,6 @@ public class commentcntrl {
         }
     }
 
-    // Filtrer par cours
     @GetMapping("/getByCourse/{courseId}")
     public ResponseEntity<ApiResponse<List<CommentDTO>>> getCommentsByCourseId(@PathVariable Integer courseId) {
         try {

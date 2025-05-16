@@ -7,9 +7,7 @@ import com.example.skillshareeeeeeee.services.categorysrvc;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,16 +21,6 @@ public class categorycntrl {
         this.categoryService = categoryService;
     }
 
-    // Mapper DTO vers Model
-    private Category mapToModel(CategoryDto dto) {
-        Category category = new Category();
-        category.setId(dto.getId());
-        category.setName(dto.getName());
-        category.setImage(dto.getImage());
-        return category;
-    }
-
-    // Récupérer toutes les catégories
     @GetMapping("/getAll")
     public ResponseEntity<ApiResponse<List<CategoryDto>>> getAllCategories() {
         List<CategoryDto> categories = categoryService.getAllCategories();
@@ -40,8 +28,7 @@ public class categorycntrl {
         return ResponseEntity.ok(response);
     }
 
-    // Récupérer une catégorie par ID
-    @GetMapping("/get/{id}")
+    @GetMapping("/getById/{id}")
     public ResponseEntity<ApiResponse<CategoryDto>> getCategoryById(@PathVariable Integer id) {
         Optional<CategoryDto> category = categoryService.getCategoryById(id);
         if (category.isPresent()) {
@@ -52,14 +39,12 @@ public class categorycntrl {
         }
     }
 
-    // Créer une nouvelle catégorie
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<CategoryDto>> createCategory(@RequestBody Category category) {
         Category created = categoryService.createCategory(category);
         return ResponseEntity.ok(new ApiResponse<>("success", categoryService.convertToDto(created)));
     }
 
-    // Mettre à jour une catégorie
     @PutMapping("/updateById/{id}")
     public ResponseEntity<ApiResponse<CategoryDto>> updateCategory(
             @PathVariable Integer id,
@@ -73,7 +58,6 @@ public class categorycntrl {
         }
     }
 
-    // Supprimer une catégorie
     @DeleteMapping("/deleteById/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteCategory(@PathVariable Integer id) {
         boolean deleted = categoryService.deleteCategory(id);
@@ -83,24 +67,5 @@ public class categorycntrl {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ApiResponse<>("failure", null));
         }
-    }
-
-    @PostMapping("/upload")
-    public ResponseEntity<ApiResponse<CategoryDto>> uploadCategoryWithImage(
-            @RequestParam("name") String name,
-            @RequestParam("image") MultipartFile imageFile) throws IOException {
-
-        if (imageFile.isEmpty()) {
-            throw new IllegalArgumentException("Le fichier image est requis");
-        }
-
-        Category category = new Category();
-        category.setName(name);
-        category.setImage(imageFile.getBytes());
-
-        Category saved = categoryService.createCategory(category);
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponse<>("success", categoryService.convertToDto(saved)));
     }
 }

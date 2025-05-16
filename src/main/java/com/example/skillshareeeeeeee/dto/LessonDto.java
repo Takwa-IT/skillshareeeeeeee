@@ -6,7 +6,6 @@ public class LessonDto {
     private String urlPdf;
     private Integer courseId;
 
-    // Constructeurs
     public LessonDto() {}
 
     public LessonDto(Integer id, String title, String urlPdf, Integer courseId) {
@@ -22,7 +21,6 @@ public class LessonDto {
         this.urlPdf = urlPdf;
     }
 
-    // Getters et Setters
     public Integer getId() {
         return id;
     }

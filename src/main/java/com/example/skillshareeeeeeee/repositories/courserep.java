@@ -11,7 +11,5 @@ import java.util.Optional;
 @Repository
 public interface courserep extends JpaRepository<coursemdl, Integer> {
     Optional<coursemdl> findById(Integer id);
-    List<coursemdl> findByOwner(usermdl owner);
-    List<coursemdl> findByCategory(Category category);
 
 }

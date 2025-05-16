@@ -30,7 +30,7 @@ public class coursemdl {
     @OneToMany(mappedBy = "course", fetch = FetchType.EAGER)
     private List<lessonmdl> lessons = new ArrayList<>();
 
-    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL , fetch = FetchType.EAGER)
     @JsonIgnore
     private List<commentmdl> comments = new ArrayList<>();
 
@@ -45,9 +45,8 @@ public class coursemdl {
     private List<CourseFollow> follows = new ArrayList<>();
 
     @Transient
-    private Integer number; // Champ non persisté en base
+    private Integer number;
 
-    // Constructeurs
     public coursemdl() {}
 
     public coursemdl(String title, String description, usermdl owner) {
@@ -55,8 +54,6 @@ public class coursemdl {
         this.description = description;
         this.owner = owner;
     }
-
-    // Getters & Setters (sans doublons)
 
     public Integer getId() {
         return id;
@@ -150,34 +147,4 @@ public class coursemdl {
         return lessons != null ? lessons.size() : 0;
     }
 
-    // Méthodes utilitaires pour relations bidirectionnelles
-    public void incrementViewCount() {
-        this.viewCounts++;
-    }
-
-    public void incrementDownloadCount() {
-        this.downloadCounts++;
-    }
-
-    public void addLesson(lessonmdl lesson) {
-        lessons.add(lesson);
-        lesson.setCourse(this);
-    }
-
-    public void removeLesson(lessonmdl lesson) {
-        lessons.remove(lesson);
-        if (lesson.getCourse() != null) {
-            lesson.setCourse(null);
-        }
-    }
-
-    public void addComment(commentmdl comment) {
-        comments.add(comment);
-        comment.setCourse(this);
-    }
-
-    public void removeComment(commentmdl comment) {
-        comments.remove(comment);
-        comment.setCourse(null);
-    }
 }

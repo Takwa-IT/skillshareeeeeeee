@@ -29,8 +29,6 @@ public class CourseFollowDTO {
         this.userId=userId;
     }
 
-    // Getters and Setters
-
     public Integer getUserId() {
         return userId;
     }

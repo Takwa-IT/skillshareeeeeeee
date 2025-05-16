@@ -14,10 +14,6 @@ public class CourseDepositDTO {
     private Date date;
     private Integer number;
 
-    // Constructeur par défaut
-
-    // Constructeur avec tous les champs
-
     public CourseDepositDTO(Integer id, Date date, Integer number, Integer userId, Integer courseId) {
         this.id = id;
         this.userId = userId;
@@ -25,8 +21,6 @@ public class CourseDepositDTO {
         this.date = date;
         this.number = number;
     }
-
-    // Getters & Setters
 
     public Integer getId() {
         return id;
@@ -67,8 +61,6 @@ public class CourseDepositDTO {
     public void setNumber(Integer number) {
         this.number = number;
     }
-
-    // toString(), equals(), hashCode()
 
     @Override
     public String toString() {

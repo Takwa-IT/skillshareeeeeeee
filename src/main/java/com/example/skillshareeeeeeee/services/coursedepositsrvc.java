@@ -119,11 +119,10 @@ public class coursedepositsrvc {
         }
     }
 
-    // Conversion entre modèle et DTO
     private CourseDepositDTO convertToDto(CourseDeposit deposit) {
         return new CourseDepositDTO(
                 deposit.getId(),
-                deposit.getDate(),              // ✔️ Date -> Date
+                deposit.getDate(),
                 deposit.getNumber(),
                 deposit.getUser().getId(),
                 deposit.getCourse().getId()

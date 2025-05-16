@@ -23,8 +23,6 @@ public class CourseFollow {
     @ManyToOne
     @JoinColumn(name = "course_id")
     private coursemdl course;
-
-    // Constructeurs
     public CourseFollow() {
     }
 
@@ -35,8 +33,6 @@ public class CourseFollow {
         this.user = user;
         this.course = course;
     }
-
-    // Getters
     public Integer getId() {
         return id;
     }
@@ -79,8 +75,6 @@ public class CourseFollow {
         this.progressReport = progressReport;
     }
 
-
-    // Méthode utilitaire pour gérer les deux relations
 
     @Override
     public String toString() {

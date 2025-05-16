@@ -37,52 +37,55 @@ public class coursesrvc {
         this.categoryRepository=categoryRepository;
     }
 
-    // 🔍 Convertir un modèle en DTO
     public CourseDto convertToDto(coursemdl course) {
-        List<CommentDTO> commentDtos = course.getComments().stream()
+
+        List<CommentDTO> commentDtos = Optional.ofNullable(course.getComments()).orElse(List.of()).stream()
                 .map(comment -> new CommentDTO(
                         comment.getId(),
                         comment.getDescription(),
-                        comment.getUser().getId(),
+                        Optional.ofNullable(comment.getUser())
+                                .map(usermdl::getId)
+                                .orElse(null) , // handle null user
                         comment.getCourse().getId()
                 ))
-                .collect(Collectors.toList());
+                .toList();
 
-        List<LessonDto> lessonDtos = course.getLessons().stream()
+        List<LessonDto> lessonDtos = Optional.ofNullable(course.getLessons()).orElse(List.of()).stream()
                 .map(lesson -> new LessonDto(
                         lesson.getId(),
                         lesson.getTitle(),
                         lesson.getUrlPdf(),
-                        lesson.getCourse().getId()
+                        Optional.ofNullable(lesson.getCourse())
+                                .map(coursemdl::getId)
+                                .orElse(null)
                 ))
-                .collect(Collectors.toList());
+                .toList();
+
+        Integer categoryId = Optional.ofNullable(course.getCategory())
+                .map(cat -> cat.getId())
+                .orElse(null);
+
+        Integer ownerId = Optional.ofNullable(course.getOwner())
+                .map(usermdl::getId)
+                .orElse(null);
 
         return new CourseDto(
                 course.getId(),
                 course.getTitle(),
                 course.getDescription(),
-                course.getDownload_counts(),
                 course.getView_counts(),
-                course.getOwner().getId(),
-                course.getCategory().getId(),
+                course.getDownload_counts(),
+                ownerId,
+                categoryId,
                 commentDtos,
                 lessonDtos
         );
     }
 
-    // 📤 Retourne une liste de DTOs
-    public List<CourseDto> getAllCourses() {
-        return courseRepository.findAll().stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
-    }
-
-    // 📥 Récupérer un cours par ID
     public Optional<CourseDto> getCourseById(Integer id) {
         return courseRepository.findById(id).map(this::convertToDto);
     }
 
-    // ✅ Créer un nouveau cours
     public CourseDto createCourse(CourseDto dto) {
         coursemdl course = new coursemdl();
         course.setTitle(dto.getTitle());
@@ -106,7 +109,6 @@ public class coursesrvc {
         return convertToDto(saved);
     }
 
-    // 🔄 Mettre à jour un cours existant
     public Optional<CourseDto> updateCourse(Integer id, CourseDto dto) {
         return courseRepository.findById(id)
                 .map(course -> {
@@ -132,7 +134,6 @@ public class coursesrvc {
                 });
     }
 
-    // 🗑️ Supprimer un cours
     public boolean deleteCourse(Integer id) {
         if (!courseRepository.existsById(id)) {
             return false;
@@ -141,11 +142,10 @@ public class coursesrvc {
         coursemdl course = courseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
-        // Optionnel : désassocier les relations avant suppression
         course.getLessons().clear();
         course.getComments().clear();
 
-        courseRepository.delete(course); // ou deleteById si tu veux juste supprimer
+        courseRepository.delete(course);
         return true;
     }
 }

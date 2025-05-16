@@ -27,14 +27,12 @@ public class commentsrvc {
         this.courseRepository = courseRepository;
     }
 
-    // Exception personnalisée
     public static class CommentNotFoundException extends RuntimeException {
         public CommentNotFoundException(String message) {
             super(message);
         }
     }
 
-    // Conversion vers DTO
     private CommentDTO convertToDto(commentmdl comment) {
         return new CommentDTO(
                 comment.getId(),
@@ -44,19 +42,15 @@ public class commentsrvc {
         );
     }
 
-    // Récupérer tous les commentaires (en format DTO)
     public List<CommentDTO> getAllComments() {
         return commentRepository.findAll().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
-
-    // Récupérer un commentaire par ID
     public Optional<CommentDTO> getCommentById(Integer id) {
         return commentRepository.findById(id).map(this::convertToDto);
     }
 
-    // Créer un commentaire
     @Transactional
     public CommentDTO createComment(Integer userId, Integer courseId, String description) {
         usermdl user = userRepository.findById(userId)
@@ -70,7 +64,6 @@ public class commentsrvc {
         return convertToDto(savedComment);
     }
 
-    // Mettre à jour un commentaire
     @Transactional
     public CommentDTO updateComment(Integer id, String newDescription) {
         commentmdl comment = commentRepository.findById(id)
@@ -79,7 +72,6 @@ public class commentsrvc {
         return convertToDto(commentRepository.save(comment));
     }
 
-    // Supprimer un commentaire
     public void deleteComment(Integer id) {
         if (!commentRepository.existsById(id)) {
             throw new CommentNotFoundException("Comment not found with id: " + id);
@@ -87,14 +79,12 @@ public class commentsrvc {
         commentRepository.deleteById(id);
     }
 
-    // Récupérer les commentaires d’un utilisateur
     public List<CommentDTO> getCommentsByUserId(Integer userId) {
         return commentRepository.findByUser_Id(userId).stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
-    // Récupérer les commentaires d’un cours
     public List<CommentDTO> getCommentsByCourseId(Integer courseId) {
         return commentRepository.findByCourse_Id(courseId).stream()
                 .map(this::convertToDto)

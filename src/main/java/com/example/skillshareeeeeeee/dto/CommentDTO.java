@@ -14,7 +14,6 @@ public class CommentDTO {
         this.courseId = courseId;
     }
 
-    // Getters et setters
 
     public Integer getId() {
         return id;

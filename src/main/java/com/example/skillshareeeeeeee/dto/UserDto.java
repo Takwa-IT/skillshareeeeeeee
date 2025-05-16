@@ -4,10 +4,8 @@ public class UserDto {
     private Integer id;
     private String email;
     private String username;
-    private byte[] image; // Remplace filepath
+    private byte[] image;
     private String password;
-
-    // Constructeurs
     public UserDto() {
     }
 
@@ -19,7 +17,6 @@ public class UserDto {
         this.password=password;
     }
 
-    // Getters et Setters
     public Integer getId() {
         return id;
     }

@@ -24,8 +24,6 @@ public class CourseDeposit {
     @ManyToOne
     @JoinColumn(name = "course_id")
     private coursemdl course;
-
-    // Constructeurs
     public CourseDeposit() {
     }
 
@@ -36,7 +34,6 @@ public class CourseDeposit {
         this.course = course;
     }
 
-    // Getters
     public Integer getId() {
         return id;
     }
@@ -57,7 +54,6 @@ public class CourseDeposit {
         return course;
     }
 
-    // Setters
     public void setId(Integer id) {
         this.id = id;
     }
@@ -69,8 +65,6 @@ public class CourseDeposit {
     public void setNumber(Integer number) {
         this.number = number;
     }
-
-    // Méthode utilitaire pour la relation bidirectionnelle
 
     @Override
     public String toString() {

@@ -38,7 +38,6 @@ public class lessoncntrl {
     private static final String FILE_DIRECTORY = "C:/Users/takwa/IdeaProjects/skillshareeeeeeee/uploads/profiles/";
 
 
-
     public lessoncntrl(lessonsrvc lessonService, courserep courseRepository, FileStorageService fileStorageService) {
         this.lessonService = lessonService;
         this.courseRepository = courseRepository;
@@ -46,7 +45,6 @@ public class lessoncntrl {
         ;
     }
 
-    // Mapping : LessonDto → lessonmdl
     private lessonmdl mapToLessonModel(LessonDto lessonDto) {
         lessonmdl lesson = new lessonmdl();
         lesson.setId(lessonDto.getId());
@@ -55,7 +53,6 @@ public class lessoncntrl {
         return lesson;
     }
 
-    // Récupérer toutes les leçons
     @GetMapping("/getAll")
     public ResponseEntity<ApiResponse<List<LessonDto>>> getAllLessons() {
         try {
@@ -72,8 +69,7 @@ public class lessoncntrl {
         }
     }
 
-    // Récupérer une leçon par ID
-    @GetMapping("/get/{id}")
+    @GetMapping("/getById/{id}")
     public ResponseEntity<ApiResponse<lessonmdl>> getLessonById(@PathVariable Integer id) {
         try {
             Optional<LessonDto> lessonOptional = lessonService.getLessonById(id);
@@ -92,7 +88,6 @@ public class lessoncntrl {
         }
     }
 
-    // Créer une nouvelle leçon
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<LessonDto>> createLesson(@RequestBody LessonDto lessonDto) {
         try {
@@ -119,7 +114,6 @@ public class lessoncntrl {
         }
     }
 
-    // Mettre à jour une leçon
     @PutMapping("/updateById/{id}")
     public ResponseEntity<ApiResponse<LessonDto>> updateLesson(
             @PathVariable Integer id,
@@ -139,7 +133,6 @@ public class lessoncntrl {
         }
     }
 
-    // Supprimer une leçon
     @DeleteMapping("/deleteById/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteLesson(@PathVariable Integer id) {
         try {
@@ -157,8 +150,7 @@ public class lessoncntrl {
         }
     }
 
-    // Récupérer les leçons par ID de cours
-    @GetMapping("/byCourse/{courseId}")
+    @GetMapping("/getByCourse/{courseId}")
     public ResponseEntity<ApiResponse<List<LessonDto>>> getLessonsByCourseId(@PathVariable Integer courseId) {
         try {
             List<LessonDto> lessons = lessonService.findLessonsByCourseId(courseId);
@@ -184,18 +176,15 @@ public class lessoncntrl {
             @RequestParam("courseId") Integer courseId) {
 
         try {
-            // 1. Trouver le cours
             coursemdl course = courseRepository.findById(courseId)
                     .orElseThrow(() -> new RuntimeException("Cours non trouvé"));
 
-            // 2. Stocker le PDF
             String fileUrl = fileStorageService.storeFile(pdfFile);
 
-            // 3. Créer la leçon
             lessonmdl lesson = new lessonmdl();
             lesson.setTitle(title);
             lesson.setUrlPdf(fileUrl);
-            lesson.setCourse(course); // ✅ Associer le cours
+            lesson.setCourse(course);
 
             lessonmdl savedLesson = lessonService.createLesson(lesson);
 
@@ -207,13 +196,11 @@ public class lessoncntrl {
         }
     }
 
-    @GetMapping("/files/{fileName:.+}")
+    @GetMapping("/getFiles/{fileName:.+}")
     public ResponseEntity<Resource> downloadFile(@PathVariable String fileName) {
         try {
-            // Décoder les caractères spéciaux (ex: é, à, espaces encodés)
             fileName = URLDecoder.decode(fileName, StandardCharsets.UTF_8);
 
-            // Construire le chemin complet vers le fichier
             Path filePath = Paths.get(FILE_DIRECTORY).resolve(fileName).normalize();
             Resource resource = new UrlResource(filePath.toUri());
 
