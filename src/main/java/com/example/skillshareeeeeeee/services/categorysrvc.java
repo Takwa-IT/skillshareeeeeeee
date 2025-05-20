@@ -56,4 +56,9 @@ public class categorysrvc {
                 category.getImage()
         );
     }
+    public byte[] getCategoryImageById(int id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+        return category.getImage(); // Suppose que getImage() retourne le BLOB (byte[])
+    }
 }

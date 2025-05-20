@@ -5,6 +5,7 @@ import com.example.skillshareeeeeeee.models.ApiResponse;
 import com.example.skillshareeeeeeee.models.Category;
 import com.example.skillshareeeeeeee.services.categorysrvc;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -67,5 +68,11 @@ public class categorycntrl {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ApiResponse<>("failure", null));
         }
+    }
+    // Nouvel endpoint pour récupérer l'image par ID
+    @GetMapping(value = "/image/{id}", produces = MediaType.IMAGE_JPEG_VALUE)
+    public ResponseEntity<byte[]> getCategoryImage(@PathVariable int id) {
+        byte[] imageBytes = categoryService.getCategoryImageById(id); // Méthode pour récupérer le BLOB
+        return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(imageBytes);
     }
 }
