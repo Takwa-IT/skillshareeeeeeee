@@ -12,7 +12,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -125,9 +127,16 @@ public class coursecntrl {
     }
 
     @GetMapping("/getAll")
-    public List<CourseDto> getAllCourses() {
-        return courseRepository.findAll().stream()
+    public ResponseEntity<Map<String, Object>> getAllCourses() {
+        List<CourseDto> courses = courseRepository.findAll().stream()
                 .map(this::convertToDto)
                 .toList();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("data", courses);
+
+        return ResponseEntity.ok(response); // HTTP 200
     }
+
 }
