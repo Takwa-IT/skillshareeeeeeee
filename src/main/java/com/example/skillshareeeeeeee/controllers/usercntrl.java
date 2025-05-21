@@ -62,7 +62,7 @@ public class usercntrl {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<ApiResponse<UserDto>> createUser(@RequestBody usermdl user) {
+    public ResponseEntity<ApiResponse<UserDto>> createUser(@ModelAttribute usermdl user) {
         if (userService.emailExists(user.getEmail())) {
             return ResponseEntity.badRequest().body(new ApiResponse<>("failure", null));
         }
@@ -120,7 +120,7 @@ public class usercntrl {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<UserDto>> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<UserDto>> login(@ModelAttribute LoginRequest request) {
         Optional<usermdl> userOptional = userRepository.findByEmail(request.getEmail());
 
         if (userOptional.isPresent()) {
